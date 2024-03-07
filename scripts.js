@@ -22,43 +22,72 @@ function divide(num1, num2){
     return num1/num2;
 }
 
-let num1=0, num2=0;
-let operation = "";
+let num1="", num2="";
+let operationQueued = null;
 const display = document.querySelector("#display");
 
-function calculate(operation, num1, num2){
-    return operations[operation](num1, num2)
-}
-
-function input(num){
-    if (display.textContent === "0"){
-        display.textContent = String(num);
-    } else if (display.textContent.length<9){
-        display.textContent+= num;
-    } 
+function addInput(num){
+    if (!operationQueued){
+        num1 += num;
+        display.textContent = num1;
+    } else if (operationQueued){
+        num2 += num;
+        display.textContent = num2;
+    }
 }
 
 function clearInput(){
     display.textContent="0";
+    num1 = "";
+    num2 = "";
+    operationQueued = null;
 }
 
 function deleteInput(){
-    if (display.textContent.length == 1){
-        display.textContent = "0"
-    } else if(display.textContent.length > 1){
-        let newDisplayContent = display.textContent.slice(0, display.textContent.length-1)
-        display.textContent = newDisplayContent;
+    if (!operationQueued){
+        num1 = num1.slice(0, display.textContent.length-1);
+        num1.length == 0 ? display.textContent = "0":
+                            display.textContent = num1;
+    } else if (operationQueued){
+        num2 = num2.slice(0, display.textContent.length-1);
+        num2.length == 0 ? display.textContent = "0":
+                            display.textContent = num1;
     }
+}
+
+function operate(operation){
+    if(operationQueued){
+        equal();
+    }
+    operationQueued = operation;
+}
+
+function equal(){
+    if(num1 && num2 && operationQueued) resolve();
+    display.textContent = num1;
+}
+
+function resolve(){
+    num1 = operations[operationQueued](parseFloat(num1), parseFloat(num2));
+    num2 = "";
 }
 
 const numButtons = document.querySelectorAll(".number");
 numButtons.forEach(button => 
-    button.addEventListener('click', () => input(button.value))
-    )
+    button.addEventListener('click', () => addInput(button.value))
+)
 
 const resetButton = document.querySelector("#reset");
-resetButton.addEventListener('click', ()=>clearInput())
-
+resetButton.addEventListener('click', ()=>clearInput());
 
 const delButton = document.querySelector("#delete");
-delButton.addEventListener('click', ()=>deleteInput())
+delButton.addEventListener('click', ()=>deleteInput());
+
+const eqButton = document.querySelector("#equal");
+eqButton.addEventListener('click', ()=>equal());
+
+const operationButtons = document.querySelectorAll(".operation");
+operationButtons.forEach(button =>
+    button.addEventListener('click', () => operate(button.id))
+)
+
