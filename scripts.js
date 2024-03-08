@@ -37,11 +37,12 @@ function clearInput(){
 function addInput(num){
     if (clearQueued) {
         clearInput();
+        num1 = "";
     }
-    if (!operationQueued){
+    if (!operationQueued && num1.length<8){
         num1 += num;
         display.textContent = num1;
-    } else if (operationQueued){
+    } else if (operationQueued && num2.length<8){
         num2 += num;
         display.textContent = num2;
     }
@@ -73,6 +74,7 @@ function decimal(){
 }
 
 function operate(operation){
+    if(clearQueued) {clearQueued = false;}
     if(operationQueued){
         resolve()
     }
@@ -80,9 +82,20 @@ function operate(operation){
 }
 
 function equal(){
+    if(!num1 || !num2 || !operationQueued) return;
     resolve();
     clearQueued = true;
-    num1 = "";
+}
+
+function getFixedLengthString(num, targetLength=8){
+    let numPrecisionString = Number(num).toPrecision(targetLength).toString();
+    if(numPrecisionString.includes("e")){
+        let expoLength = numPrecisionString.slice(numPrecisionString.indexOf("e")).length;
+        return Number(num1).toPrecision(targetLength-expoLength);
+    } else if (numPrecisionString.includes(".")){
+        let intLength = numPrecisionString.slice(0, numPrecisionString.indexOf(".")).length;
+        return Number(num1).toFixed(targetLength-intLength);
+    }
 }
 
 function resolve(){
@@ -91,7 +104,9 @@ function resolve(){
         num2 = "";
     }
     operationQueued = null;
-    display.textContent = num1;
+
+    display.textContent = num1.toString().length<9? 
+                            num1:getFixedLengthString(num1);
 }
 
 const numButtons = document.querySelectorAll(".number");
