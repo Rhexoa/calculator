@@ -24,9 +24,20 @@ function divide(num1, num2){
 
 let num1="", num2="";
 let operationQueued = null;
+let clearQueued = null;
 const display = document.querySelector("#display");
 
+function clearInput(){
+    display.textContent="0";
+    num1 = "";
+    num2 = "";
+    operationQueued = null;
+    clearQueued = false;
+}
 function addInput(num){
+    if (clearQueued) {
+        clearInput();
+    }
     if (!operationQueued){
         num1 += num;
         display.textContent = num1;
@@ -36,46 +47,57 @@ function addInput(num){
     }
 }
 
-function clearInput(){
-    display.textContent="0";
-    num1 = "";
-    num2 = "";
-    operationQueued = null;
-}
 
 function deleteInput(){
     if (!operationQueued){
-        num1 = num1.slice(0, display.textContent.length-1);
+        num1 = String(num1).slice(0, num1.length-1);
         num1.length == 0 ? display.textContent = "0":
                             display.textContent = num1;
     } else if (operationQueued){
-        num2 = num2.slice(0, display.textContent.length-1);
+        num2 = String(num2).slice(0, num2.length-1);
         num2.length == 0 ? display.textContent = "0":
                             display.textContent = num1;
     }
 }
 
+function decimal(){
+    if (display.textContent?.includes(".")) return;
+
+    if (!operationQueued){
+        num1 += ".";
+        display.textContent = num1;
+    } else if (operationQueued){
+        num2 += ".";
+        display.textContent = num2;
+    }
+}
+
 function operate(operation){
     if(operationQueued){
-        equal();
+        resolve()
     }
     operationQueued = operation;
 }
 
 function equal(){
-    if(num1 && num2 && operationQueued) resolve();
-    display.textContent = num1;
+    resolve();
+    clearQueued = true;
+    num1 = "";
 }
 
 function resolve(){
-    num1 = operations[operationQueued](parseFloat(num1), parseFloat(num2));
-    num2 = "";
+    if(num1 && num2 && operationQueued){
+        num1 = operations[operationQueued](parseFloat(num1), parseFloat(num2));
+        num2 = "";
+    }
+    operationQueued = null;
+    display.textContent = num1;
 }
 
 const numButtons = document.querySelectorAll(".number");
 numButtons.forEach(button => 
     button.addEventListener('click', () => addInput(button.value))
-)
+);
 
 const resetButton = document.querySelector("#reset");
 resetButton.addEventListener('click', ()=>clearInput());
@@ -89,5 +111,7 @@ eqButton.addEventListener('click', ()=>equal());
 const operationButtons = document.querySelectorAll(".operation");
 operationButtons.forEach(button =>
     button.addEventListener('click', () => operate(button.id))
-)
+);
 
+const decimalButton = document.querySelector("#decimal");
+decimalButton.addEventListener('click', () => decimal());
